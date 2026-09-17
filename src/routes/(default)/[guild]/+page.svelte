@@ -30,6 +30,15 @@
 						</div>
 					</a>
 					{#if guild.privilegeLevel >= 2}
+						<a
+							href={`/${$page.params.guild}/tickets`}
+							class="rounded-md bg-dgrey-900/10 px-2 py-1 text-dgrey-700 duration-300 hover:bg-dgrey-900/20 dark:bg-dgrey-400/10 dark:text-dgrey-400/75 dark:hover:bg-dgrey-400/20 hover:dark:text-dgrey-400/100"
+						>
+							<div class="flex items-center gap-2">
+								<i class="fa-solid fa-ticket"></i>
+								Tickets
+							</div>
+						</a>
 						<!-- real id from guild -->
 						<a
 							href={`/settings/${guild.id}`}
