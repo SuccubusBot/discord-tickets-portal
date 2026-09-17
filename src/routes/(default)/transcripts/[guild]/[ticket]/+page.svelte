@@ -1,5 +1,6 @@
 <script>
-	import { parseMessageContent, safeHttpUrl } from '$lib/transcript';
+	import { parseMessageContent } from '$lib/transcript';
+	import MessageContent from '$components/MessageContent.svelte';
 
 	/** @type {{data: import('./$types').PageData}} */
 	let { data } = $props();
@@ -12,8 +13,8 @@
 		dateStyle: 'medium',
 		timeStyle: 'short'
 	});
-	const users = new Map(data.ticket.archivedUsers.map((user) => [user.userId, user]));
-	const roles = new Map(data.ticket.archivedRoles.map((role) => [role.roleId, role]));
+	const users = $derived(new Map(data.ticket.archivedUsers.map((user) => [user.userId, user])));
+	const roles = $derived(new Map(data.ticket.archivedRoles.map((role) => [role.roleId, role])));
 
 	const displayName = (user) => user?.displayName || user?.username || 'Unknown user';
 	const avatar = (user) =>
@@ -111,48 +112,33 @@
 									{#if message.deleted}<span class="text-xs text-red-500">deleted</span>{/if}
 								</div>
 
-								{#if content.content}
-									<p
-										class="mt-1 whitespace-pre-wrap break-words text-[0.95rem] leading-6 text-dgrey-900 dark:text-slate-100"
-									>
-										{content.content}
-									</p>
-								{/if}
-
-								{#if content.attachments?.length}
-									<ul class="mt-3 space-y-2">
-										{#each content.attachments as attachment}
-											{@const href = safeHttpUrl(attachment.url)}
-											{#if href}
-												<li>
-													<a
-														{href}
-														target="_blank"
-														rel="noreferrer"
-														class="inline-flex max-w-full items-center gap-2 rounded-md bg-gray-100 px-3 py-2 text-sm text-blurple hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blurple dark:bg-dgrey-800"
-													>
-														<i class="fa-solid fa-paperclip"></i>
-														<span class="truncate">{attachment.name || 'Attachment'}</span>
-													</a>
-												</li>
-											{/if}
-										{/each}
-									</ul>
-								{/if}
-
-								{#if content.embeds?.length}
-									<div class="mt-3 space-y-2">
-										{#each content.embeds as embed}
-											<div
-												class="border-l-4 border-blurple bg-gray-50 px-3 py-2 text-sm dark:bg-dgrey-800"
-											>
-												{#if embed.title}<p class="font-semibold">{embed.title}</p>{/if}
-												{#if embed.description}<p class="mt-1 whitespace-pre-wrap">
-														{embed.description}
-													</p>{/if}
+								<MessageContent
+									{content}
+									guildId={data.guild.id}
+									ticketId={data.ticket.id}
+									messageId={message.id}
+								/>
+								{#if content.revisions?.length}
+									<details class="mt-3 border-t border-gray-200 pt-2 dark:border-slate-600">
+										<summary class="cursor-pointer text-sm text-gray-500 dark:text-slate-400"
+											>Edit history ({content.revisions.length} previous versions)</summary
+										>
+										{#each content.revisions as revision}
+											<div class="mt-3 border-l-2 border-gray-300 pl-3 dark:border-slate-600">
+												<p class="text-xs text-gray-500 dark:text-slate-400">
+													{revision.editedAt
+														? messageTime.format(new Date(revision.editedAt))
+														: 'Original message'}
+												</p>
+												<MessageContent
+													content={revision}
+													guildId={data.guild.id}
+													ticketId={data.ticket.id}
+													messageId={message.id}
+												/>
 											</div>
 										{/each}
-									</div>
+									</details>
 								{/if}
 							</div>
 						</article>

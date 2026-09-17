@@ -1,5 +1,10 @@
 import assert from 'node:assert/strict';
-import { parseMessageContent, safeHttpUrl } from '../src/lib/transcript.js';
+import {
+	attachmentUrl,
+	messageEmbeds,
+	parseMessageContent,
+	safeHttpUrl
+} from '../src/lib/transcript.js';
 
 assert.deepEqual(parseMessageContent('{"content":"hello","attachments":[]}'), {
 	attachments: [],
@@ -11,5 +16,19 @@ assert.equal(
 	'https://cdn.discordapp.com/file.png'
 );
 assert.equal(safeHttpUrl('javascript:alert(1)'), null);
+assert.deepEqual(
+	messageEmbeds({
+		embeds: [{ data: { title: 'Legacy', fields: [{ name: 'Question', value: 'Answer' }] } }]
+	}),
+	[{ title: 'Legacy', fields: [{ name: 'Question', value: 'Answer' }] }]
+);
+assert.deepEqual(messageEmbeds({ embeds: [{ title: 'New' }, null] }), [{ title: 'New' }]);
+assert.equal(
+	attachmentUrl('997372719555412008', '997372719555412009', '997372719555412010', {
+		id: '997372719555412011'
+	}),
+	'/api/admin/guilds/997372719555412008/tickets/997372719555412009/messages/997372719555412010/attachments/997372719555412011'
+);
+assert.equal(attachmentUrl('../secret', '1', '2', { id: '3' }), null);
 
 console.log('transcript helpers: ok');

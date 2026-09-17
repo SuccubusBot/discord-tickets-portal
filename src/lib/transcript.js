@@ -18,3 +18,15 @@ export function safeHttpUrl(value) {
 		return null;
 	}
 }
+
+export function messageEmbeds(content) {
+	return (Array.isArray(content.embeds) ? content.embeds : [])
+		.map((embed) => embed?.data || embed)
+		.filter((embed) => embed && typeof embed === 'object');
+}
+
+export function attachmentUrl(guild, ticket, message, attachment) {
+	const ids = [guild, ticket, message, attachment.id];
+	if (!ids.every((id) => /^\d{16,20}$/.test(id))) return null;
+	return `/api/admin/guilds/${guild}/tickets/${ticket}/messages/${message}/attachments/${attachment.id}`;
+}
