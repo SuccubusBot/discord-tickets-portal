@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {
 	attachmentUrl,
+	messageComponentRows,
 	messageEmbeds,
 	parseMessageContent,
 	safeHttpUrl
@@ -30,5 +31,15 @@ assert.equal(
 	'/api/admin/guilds/997372719555412008/tickets/997372719555412009/messages/997372719555412010/attachments/997372719555412011'
 );
 assert.equal(attachmentUrl('../secret', '1', '2', { id: '3' }), null);
+const closeButton = { type: 2, style: 4, label: 'Close ticket', custom_id: 'close' };
+assert.deepEqual(messageComponentRows({ components: [{ type: 1, components: [closeButton] }] }), [
+	[closeButton]
+]);
+assert.deepEqual(
+	messageComponentRows({
+		components: [{ data: { type: 1 }, components: [{ data: closeButton }] }]
+	}),
+	[[closeButton]]
+);
 
 console.log('transcript helpers: ok');

@@ -1,5 +1,6 @@
 <script>
 	import MessageText from './MessageText.svelte';
+	import MessageComponents from './MessageComponents.svelte';
 	import { attachmentUrl, messageEmbeds, safeHttpUrl } from '$lib/transcript';
 	let { content, guildId, ticketId, messageId } = $props();
 	const colour = (value) =>
@@ -119,3 +120,5 @@
 		<div class="clear-both"></div>
 	</div>
 {/each}
+
+<MessageComponents {content} />

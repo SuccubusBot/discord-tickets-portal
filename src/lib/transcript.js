@@ -25,6 +25,17 @@ export function messageEmbeds(content) {
 		.filter((embed) => embed && typeof embed === 'object');
 }
 
+export function messageComponentRows(content) {
+	const unwrap = (component) => component?.data || component;
+	return (Array.isArray(content.components) ? content.components : [])
+		.map((row) => {
+			const data = unwrap(row);
+			const components = row?.components || data?.components;
+			return data?.type === 1 && Array.isArray(components) ? components.map(unwrap) : [data];
+		})
+		.map((row) => row.filter((component) => component && typeof component === 'object'));
+}
+
 export function attachmentUrl(guild, ticket, message, attachment) {
 	const ids = [guild, ticket, message, attachment.id];
 	if (!ids.every((id) => /^\d{16,20}$/.test(id))) return null;
