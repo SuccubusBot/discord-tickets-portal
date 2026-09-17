@@ -1,9 +1,43 @@
 <script>
+	import { invalidateAll } from '$app/navigation';
 	import { parseMessageContent } from '$lib/transcript';
 	import MessageContent from '$components/MessageContent.svelte';
 
 	/** @type {{data: import('./$types').PageData}} */
 	let { data } = $props();
+	let recovering = $state(false);
+	let recoveryError = $state('');
+	const missingOpening = $derived(
+		data.ticket.openingMessageId &&
+			!data.ticket.archivedMessages.some((message) => message.id === data.ticket.openingMessageId)
+	);
+	async function recoverOpening() {
+		recovering = true;
+		recoveryError = '';
+		try {
+			const response = await fetch(
+				`/api/admin/guilds/${data.guild.id}/tickets/${data.ticket.id}/recover`,
+				{
+					method: 'POST',
+					signal: AbortSignal.timeout(20000)
+				}
+			);
+			if (!response.ok) {
+				const body = await response.json().catch(() => ({}));
+				throw new Error(
+					body.message || 'The opening message could not be recovered. Please try again.'
+				);
+			}
+			await invalidateAll();
+		} catch (error) {
+			recoveryError =
+				error.name === 'TimeoutError'
+					? 'Recovery timed out. Refresh to check whether the message was saved, or try again.'
+					: error.message;
+		} finally {
+			recovering = false;
+		}
+	}
 
 	const fullDate = new Intl.DateTimeFormat(undefined, {
 		dateStyle: 'medium',
@@ -23,7 +57,7 @@
 			: null;
 	const roleColour = (user) => {
 		const colour = roles.get(user?.roleId)?.colour;
-		return /^[0-9a-f]{6}$/i.test(colour || '') ? `#${colour}` : null;
+		return colour !== '000000' && /^[0-9a-f]{6}$/i.test(colour || '') ? `#${colour}` : null;
 	};
 </script>
 
@@ -70,6 +104,26 @@
 					{data.ticket.archivedMessages.length}
 				</span>
 			</div>
+
+			{#if missingOpening}
+				<div class="mb-4 border-l-2 border-gray-300 pl-3 text-sm dark:border-slate-600">
+					<p>The opening message is missing from this archive.</p>
+					<p class="mt-1 text-gray-500 dark:text-slate-400">
+						Recover its current content if the original message still exists in Discord.
+					</p>
+					<button
+						type="button"
+						onclick={recoverOpening}
+						disabled={recovering}
+						class="mt-2 rounded-md bg-blurple px-3 py-2 font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blurple focus-visible:ring-offset-2 disabled:opacity-50"
+					>
+						{recovering ? 'Recovering…' : 'Recover opening message'}
+					</button>
+					{#if recoveryError}<p role="alert" class="mt-2 text-red-600 dark:text-red-400">
+							{recoveryError}
+						</p>{/if}
+				</div>
+			{/if}
 
 			{#if data.ticket.archivedMessages.length}
 				<div

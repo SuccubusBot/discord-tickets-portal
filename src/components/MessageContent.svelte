@@ -15,6 +15,12 @@
 	</div>
 {/if}
 
+{#if !content.content && !content.attachments?.length && !content.embeds?.length && !content.components?.length}
+	<p class="mt-1 text-sm italic text-gray-500 dark:text-slate-400">
+		No text, embeds, or buttons were saved for this message.
+	</p>
+{/if}
+
 {#if content.attachments?.length}
 	<ul class="mt-3 space-y-2">
 		{#each content.attachments as attachment}
